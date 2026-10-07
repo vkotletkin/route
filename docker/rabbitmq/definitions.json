@@ -1,0 +1,89 @@
+{
+  "users": [
+    {
+      "name": "router",
+      "password_hash": "obLD1KTvbhqjIpcuP86zjv5KqQJC8zO3Lz3dnfS3+KcK398T",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ["administrator"]
+    }
+  ],
+  "vhosts": [
+    {"name": "/"},
+    {"name": "in"},
+    {"name": "out"}
+  ],
+  "permissions": [
+    {"user": "router", "vhost": "/", "configure": ".*", "write": ".*", "read": ".*"},
+    {"user": "router", "vhost": "in", "configure": ".*", "write": ".*", "read": ".*"},
+    {"user": "router", "vhost": "out", "configure": ".*", "write": ".*", "read": ".*"}
+  ],
+  "exchanges": [
+    {
+      "name": "xml.in",
+      "vhost": "in",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "xml.out",
+      "vhost": "out",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "xml.inbound",
+      "vhost": "in",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "orders",
+      "vhost": "out",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "invoices",
+      "vhost": "out",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "xml.in",
+      "vhost": "in",
+      "destination": "xml.inbound",
+      "destination_type": "queue",
+      "routing_key": "xml.inbound",
+      "arguments": {}
+    },
+    {
+      "source": "xml.out",
+      "vhost": "out",
+      "destination": "orders",
+      "destination_type": "queue",
+      "routing_key": "orders",
+      "arguments": {}
+    },
+    {
+      "source": "xml.out",
+      "vhost": "out",
+      "destination": "invoices",
+      "destination_type": "queue",
+      "routing_key": "invoices",
+      "arguments": {}
+    }
+  ]
+}

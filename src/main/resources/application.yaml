@@ -1,0 +1,96 @@
+spring:
+  application:
+    name: router
+  profiles:
+    default: rabbit
+  cloud:
+    stream:
+      function:
+        definition: xmlInbound
+      bindings:
+        xmlInbound-in-0:
+          destination: ${RABBIT_IN_EXCHANGE:xml.in}
+          group: ${RABBIT_IN_QUEUE:xml.inbound}
+          # XML is carried as text. application/xml has no Stream converter and the publish fails.
+          content-type: text/plain
+          consumer:
+            max-attempts: 1
+        xmlOutbound-out-0:
+          destination: ${RABBIT_OUT_EXCHANGE:xml.out}
+          content-type: text/plain
+      rabbit:
+        bindings:
+          xmlInbound-in-0:
+            consumer:
+              exchange-type: direct
+              queue-name-group-only: true
+              binding-routing-key: ${RABBIT_IN_QUEUE:xml.inbound}
+          xmlOutbound-out-0:
+            producer:
+              exchange-type: direct
+              routing-key-expression: headers['routeKey']
+
+app:
+  routes-json: '{"orders":{"xpath":"//order","priority":1},"invoices":{"xpath":"//invoice","priority":2}}'
+
+---
+spring:
+  config:
+    activate:
+      on-profile: rabbit
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USER:router}
+    password: ${RABBIT_PASSWORD:router}
+    virtual-host: ${RABBIT_IN_VHOST:in}
+  cloud:
+    stream:
+      bindings:
+        xmlInbound-in-0:
+          binder: inbound
+        xmlOutbound-out-0:
+          binder: outbound
+      binders:
+        inbound:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: ${RABBIT_HOST:localhost}
+                port: ${RABBIT_PORT:5672}
+                username: ${RABBIT_USER:router}
+                password: ${RABBIT_PASSWORD:router}
+                virtual-host: ${RABBIT_IN_VHOST:in}
+        outbound:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: ${RABBIT_HOST:localhost}
+                port: ${RABBIT_PORT:5672}
+                username: ${RABBIT_USER:router}
+                password: ${RABBIT_PASSWORD:router}
+                virtual-host: ${RABBIT_OUT_VHOST:out}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.amqp.autoconfigure.RabbitAutoConfiguration
+  cloud:
+    stream:
+      default-binder: test
+      bindings:
+        xmlInbound-in-0:
+          binder: test
+        xmlOutbound-out-0:
+          binder: test
+
+management:
+  health:
+    rabbit:
+      enabled: false

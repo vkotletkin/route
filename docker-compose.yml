@@ -1,0 +1,34 @@
+# Management UI: http://localhost:15672  (router / router)
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: router
+      RABBITMQ_DEFAULT_PASS: router
+    volumes:
+      - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./docker/rabbitmq/20-definitions.conf:/etc/rabbitmq/conf.d/20-definitions.conf:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+
+  router:
+    build: .
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RABBIT_HOST: rabbitmq
+      RABBIT_USER: router
+      RABBIT_PASSWORD: router
+      RABBIT_IN_VHOST: in
+      RABBIT_OUT_VHOST: out
+      APP_ROUTES_JSON: '{"orders":{"xpath":"//order","priority":1},"invoices":{"xpath":"//invoice","priority":2}}'
+    ports:
+      - "8080:8080"
