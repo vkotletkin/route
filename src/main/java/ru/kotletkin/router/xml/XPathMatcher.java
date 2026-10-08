@@ -19,7 +19,7 @@ public class XPathMatcher {
             XPathSelector selector = compiled.computeIfAbsent(expression, this::compile).load();
             selector.setContextItem(document);
             XdmValue result = selector.evaluate();
-            return result.size() > 0;
+            return !result.isEmptySequence();
         } catch (SaxonApiException exception) {
             throw new IllegalStateException("Failed to evaluate XPath: " + expression, exception);
         }

@@ -17,7 +17,7 @@ public class XmlRouter {
 
     public XmlRouter(XPathMatcher matcher, RouteProperties properties, JsonMapper jsonMapper) {
         this.matcher = matcher;
-        this.routes = readRoutes(properties.getRoutesJson(), jsonMapper);
+        this.routes = readRoutes(properties.routesJson(), jsonMapper);
     }
 
     public List<Route> destinations(String xml) {

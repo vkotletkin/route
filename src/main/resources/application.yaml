@@ -1,12 +1,8 @@
 spring:
   application:
     name: router
-  profiles:
-    default: rabbit
   cloud:
     stream:
-      function:
-        definition: xmlInbound
       bindings:
         xmlInbound-in-0:
           destination: ${RABBIT_IN_EXCHANGE:xml.in}
@@ -32,65 +28,3 @@ spring:
 
 app:
   routes-json: '{"orders":{"xpath":"//order","priority":1},"invoices":{"xpath":"//invoice","priority":2}}'
-
----
-spring:
-  config:
-    activate:
-      on-profile: rabbit
-  rabbitmq:
-    host: ${RABBIT_HOST:localhost}
-    port: ${RABBIT_PORT:5672}
-    username: ${RABBIT_USER:router}
-    password: ${RABBIT_PASSWORD:router}
-    virtual-host: ${RABBIT_IN_VHOST:in}
-  cloud:
-    stream:
-      bindings:
-        xmlInbound-in-0:
-          binder: inbound
-        xmlOutbound-out-0:
-          binder: outbound
-      binders:
-        inbound:
-          type: rabbit
-          environment:
-            spring:
-              rabbitmq:
-                host: ${RABBIT_HOST:localhost}
-                port: ${RABBIT_PORT:5672}
-                username: ${RABBIT_USER:router}
-                password: ${RABBIT_PASSWORD:router}
-                virtual-host: ${RABBIT_IN_VHOST:in}
-        outbound:
-          type: rabbit
-          environment:
-            spring:
-              rabbitmq:
-                host: ${RABBIT_HOST:localhost}
-                port: ${RABBIT_PORT:5672}
-                username: ${RABBIT_USER:router}
-                password: ${RABBIT_PASSWORD:router}
-                virtual-host: ${RABBIT_OUT_VHOST:out}
-
----
-spring:
-  config:
-    activate:
-      on-profile: test
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.amqp.autoconfigure.RabbitAutoConfiguration
-  cloud:
-    stream:
-      default-binder: test
-      bindings:
-        xmlInbound-in-0:
-          binder: test
-        xmlOutbound-out-0:
-          binder: test
-
-management:
-  health:
-    rabbit:
-      enabled: false
